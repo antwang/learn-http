@@ -81,7 +81,7 @@ HTTP在GET请求报文中添加一些特殊的条件首部，就可以发起条�
 If-Modified-Since:Mon, 10 Jul 2017 07:00:25 GMT
 ```
 如果在指定日期后，文档被修改了，`If-Modified-Since`条件就为`true`，服务器就会执行客户端的请求，返回带有新首部的新文档。如果条件为`false`，说明文档没有发生变化，服务器只需要向客户端返回一个小的304响应报文。`If-Modified-Since`通常与`Last-Modified`结合使用，`If-Modified-Since`所带的日期参数就是通过`Last-Modified`来指定的。
-![if-modified-since流程图](./images/get-flow.png)
+![if-modified-since流程图](./images/if-modified-since.png)
 ### If-None-Match
 有些情况下仅使用最后修改日期进行再验证是不够的。例如，有些文档可能会周期性地重写，但实际包含的数据常常是一样的，虽然日期会发生变化，但内容没有变化。为了解决这些问题，HTTP使用`If-None-Match`对称为实体标签（ETag）的“版本标识符”进行比较。
 todo：图例
