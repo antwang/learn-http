@@ -84,7 +84,7 @@ If-Modified-Since:Mon, 10 Jul 2017 07:00:25 GMT
 ![if-modified-since流程图](./images/get-flow.png)
 ### If-None-Match
 有些情况下仅使用最后修改日期进行再验证是不够的。例如，有些文档可能会周期性地重写，但实际包含的数据常常是一样的，虽然日期会发生变化，但内容没有变化。为了解决这些问题，HTTP使用`If-None-Match`对称为实体标签（ETag）的“版本标识符”进行比较。
-todo：图例
+![if-none-match流程图](./images/if-none-match.png)
 `If-None-Match`还可以指定多个Etag，告诉服务器，带有这些ETag的文档在缓存中已经有了。
 ```
 If-None-Match: "v2.6"
@@ -98,3 +98,47 @@ If-None-Match:W/"SQ4MC886Xlop1W0MiuTXuDwxLX8="
 ```
 ### Etag和Last-Modified的使用
 如果服务器回送了一个`Etag`，HTTP/1.1客户端必须使用`If-None-Match`。如果服务器回送了一个`Last-Modified`值，客户端需要使用`If-Modified-Since`。如果`Etag`和`Last-Modified`都提供了，客户端应该使用`If-None-Match`和`If-Modified-Since`两种验证方案。如果HTTP1/1.1缓存或服务器收到的请求既带有`If-None-Match`首部，也带有`If-Modified-Since`首部，那么只有两个条件都满足，才能返回`304 Not Modified`响应。
+# Cache-Control 首部
+每个资源都可通过`Cache-Control` HTTP 标头定义其缓存策略。`Cache-Control` 指令控制谁在什么条件下可以缓存响应以及可以缓存多久。
+## Request Cache-Control
+- Cache-Control: max-age=<seconds>
+- Cache-Control: max-stale[=<seconds>]
+- Cache-Control: min-fresh=<seconds>
+- Cache-Control: no-cache 
+- Cache-Control: no-store
+- Cache-Control: no-transform
+- Cache-Control: only-if-cached
+## Response Cache-Control
+- Cache-Control: must-revalidate
+- Cache-Control: no-cache
+- Cache-Control: no-store
+- Cache-Control: no-transform
+- Cache-Control: public
+- Cache-Control: private
+- Cache-Control: proxy-revalidate
+- Cache-Control: max-age=<seconds>
+- Cache-Control: s-maxage=<seconds>
+
+## Cache-Control 指令的含义
+> - public 数据内容可以被任何缓存保存起来
+> - private 数据内容只能被储存到私有的cache，仅对某个用户有效，不能共享
+> - no-cache 可以缓存，但是只有在跟WEB服务器验证了其有效后，才能返回给客户端
+> - no-store 请求和响应都不会被缓存
+> - only-if-cached 告知缓存者,我希望内容来自缓存，我并不关心被缓存响应,是否是新鲜的.
+> - max-age=<seconds> 本响应包含的对象的过期时间
+> - s-maxage=<seconds> 与max-age的唯一区别是,s-maxage仅仅应用于共享缓存.另外,s-maxage的优先级要高于max-age.
+> - max-stale[=<seconds>] 允许读取过期时间小于max-stale 值的缓存对象。
+> - min-fresh=<seconds> 接受其max-age生命期大于其当前时间 跟 min-fresh 值之和的缓存对象
+> - must-revalidate 不允许使用过期的缓存数据，必须和原来的服务器确定是否为最新数据。
+> - proxy-revalidate 与must-revalidate类似，区别在于：proxy-revalidate只用于共享缓存
+> - no-transform 不要更改媒体类型,比如jpg,被你改成png
+# 定义最佳 Cache-Control 策略
+![http-cache-decision-tree](./images/http-cache-decision-tree.png)
+按照以上决策树为您的应用使用的特定资源或一组资源确定最佳缓存策略。在理想的情况下，您的目标应该是在客户端上缓存尽可能多的响应，缓存尽可能长的时间，并且为每个响应提供验证令牌，以实现高效的重新验证。
+# 制定缓存策略的一些技巧
+- 使用一致的网址：如果您在不同的网址上提供相同的内容，将会多次获取和存储这些内容。提示：请注意，网址区分大小写。
+- 确保服务器提供验证令牌 (ETag)：有了验证令牌，当服务器上的资源未发生变化时，就不需要传送相同的字节。
+- 确定中间缓存可以缓存哪些资源：对所有用户的响应完全相同的资源非常适合由 CDN 以及其他中间缓存进行缓存。
+- 为每个资源确定最佳缓存周期：不同的资源可能有不同的更新要求。为每个资源审核并确定合适的 max-age。
+- 确定最适合您的网站的缓存层次结构：您可以通过为 HTML 文档组合使用包含内容指纹的资源网址和短时间或 no-cache 周期，来控制客户端获取更新的速度。
+- 最大限度减少搅动：某些资源的更新比其他资源频繁。如果资源的特定部分（例如 JavaScript 函数或 CSS 样式集）会经常更新，可以考虑将其代码作为单独的文件提供。这样一来，每次获取更新时，其余内容（例如变化不是很频繁的内容库代码）可以从缓存获取，从而最大限度减少下载的内容大小。
