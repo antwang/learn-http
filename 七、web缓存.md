@@ -84,8 +84,11 @@ If-Modified-Since:Mon, 10 Jul 2017 07:00:25 GMT
 ![if-modified-since流程图](./images/if-modified-since.png)
 ### If-None-Match
 有些情况下仅使用最后修改日期进行再验证是不够的。例如，有些文档可能会周期性地重写，但实际包含的数据常常是一样的，虽然日期会发生变化，但内容没有变化。为了解决这些问题，HTTP使用`If-None-Match`对称为实体标签（ETag）的“版本标识符”进行比较。
+
 ![if-none-match流程图](./images/if-none-match.png)
+
 `If-None-Match`还可以指定多个Etag，告诉服务器，带有这些ETag的文档在缓存中已经有了。
+
 ```
 If-None-Match: "v2.6"
 If-None-Match: "v2.6","v2.5"
@@ -134,7 +137,9 @@ If-None-Match:W/"SQ4MC886Xlop1W0MiuTXuDwxLX8="
 > - no-transform 不要更改媒体类型,比如jpg,被你改成png
 # 定义最佳 Cache-Control 策略
 ![http-cache-decision-tree](./images/http-cache-decision-tree.png)
+
 按照以上决策树为您的应用使用的特定资源或一组资源确定最佳缓存策略。在理想的情况下，您的目标应该是在客户端上缓存尽可能多的响应，缓存尽可能长的时间，并且为每个响应提供验证令牌，以实现高效的重新验证。
+
 # 制定缓存策略的一些技巧
 - 使用一致的网址：如果您在不同的网址上提供相同的内容，将会多次获取和存储这些内容。提示：请注意，网址区分大小写。
 - 确保服务器提供验证令牌 (ETag)：有了验证令牌，当服务器上的资源未发生变化时，就不需要传送相同的字节。
